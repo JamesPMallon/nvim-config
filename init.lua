@@ -141,6 +141,7 @@ require('lazy').setup({
       return vim.fn.executable 'make' == 1
     end,
   },
+  'nvim-treesitter/nvim-treesitter-context',
   {
     -- Highlight, edit, and navigate code
     'nvim-treesitter/nvim-treesitter',
@@ -180,12 +181,28 @@ require("catppuccin").setup({
   },
 })
 
+require('treesitter-context').setup({
+  enable = true,            -- Enable this plugin (Can be enabled/disabled later via commands)
+  max_lines = 0,            -- How many lines the window should span. Values <= 0 mean no limit.
+  min_window_height = 0,    -- Minimum editor window height to enable context. Values <= 0 mean no limit.
+  line_numbers = true,
+  multiline_threshold = 20, -- Maximum number of lines to collapse for a single context line
+  trim_scope = 'outer',     -- Which context lines to discard if `max_lines` is exceeded. Choices: 'inner', 'outer'
+  mode = 'cursor',          -- Line used to calculate context. Choices: 'cursor', 'topline'
+  -- Separator between context and content. Should be a single character string, like '-'.
+  -- When separator is set, the context will only show up when there are at least 2 lines above cursorline.
+  separator = nil,
+  zindex = 20,     -- The Z-index of the context window
+  on_attach = nil, -- (fun(buf: integer): boolean) return false to disable attaching
+})
+
 vim.cmd.colorscheme 'catppuccin'
 
 -- [[ Setting options ]]
 -- See `:help vim.o`
 -- NOTE: You can change these options as you wish!
 
+vim.o.relativenumber = true
 -- Set highlight on search
 vim.o.hlsearch = false
 
@@ -237,6 +254,14 @@ vim.keymap.set('n', 'j', "v:count == 0 ? 'gj' : 'j'", { expr = true, silent = tr
 -- Remap for vertical page moving
 vim.keymap.set('n', '<C-d>', '<C-d>zz')
 vim.keymap.set('n', '<C-u>', '<C-u>zz')
+vim.keymap.set('n', '``', '``zz')
+
+-- Add non-breaking newline without going into insert, mainly for formatting code
+vim.keymap.set('n', '<C-J>', 'o<Esc>')
+-- Add breaking newline without going into insert, mainly for formatting code
+vim.keymap.set('n', '<C-Enter>', 'i<Enter><Esc>')
+
+vim.keymap.set('v', '<C-9>', "c'('')'<Esc>P")
 
 vim.keymap.set('x', '<leader>p', "\"_dP")
 
