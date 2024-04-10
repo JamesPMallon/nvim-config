@@ -32,7 +32,14 @@ require('lazy').setup({
   -- Detect tabstop and shiftwidth automatically
   'tpope/vim-sleuth',
   'mg979/vim-visual-multi',
-
+  'MaxMEllon/vim-jsx-pretty',
+  {
+    'goolord/alpha-nvim',
+    dependencies = { 'nvim-tree/nvim-web-devicons' },
+    config = function()
+      require 'alpha'.setup(require 'alpha.themes.startify'.config)
+    end
+  },
   -- NOTE: This is where your plugins related to LSP can be installed.
   --  The configuration is done below. Search for lspconfig to find it below.
   {
@@ -51,8 +58,6 @@ require('lazy').setup({
       'folke/neodev.nvim',
     },
   },
-  'MaxMEllon/vim-jsx-pretty',
-
   {
     -- Autocompletion
     'hrsh7th/nvim-cmp',
@@ -125,7 +130,6 @@ require('lazy').setup({
 
   -- "gc" to comment visual regions/lines
   { 'numToStr/Comment.nvim',         opts = {} },
-
   -- Fuzzy Finder (files, lsp, etc)
   { 'nvim-telescope/telescope.nvim', branch = '0.1.x', dependencies = { 'nvim-lua/plenary.nvim' } },
 
@@ -150,24 +154,64 @@ require('lazy').setup({
     },
     build = ':TSUpdate',
   },
-  {
-    'glepnir/dashboard-nvim',
-    event = 'VimEnter',
-    config = function()
-      require('dashboard').setup {
-      }
-    end,
-    dependencies = { { 'nvim-tree/nvim-web-devicons' } }
-  },
+  -- {
+  --   'nvimdev/dashboard-nvim',
+  --   event = 'VimEnter',
+  --   config = function()
+  --     require('dashboard').setup {
+  --     }
+  --   end,
+  --   dependencies = { { 'nvim-tree/nvim-web-devicons' } }
+  -- },
   require 'kickstart.plugins.autoformat',
   -- require 'kickstart.plugins.debug',
   { import = 'custom.plugins' },
-  { 'ThePrimeagen/harpoon',   opts = {} },
+  {
+    "folke/tokyonight.nvim",
+    lazy = false,
+    priority = 1000,
+    opts = {},
+  }
 }, {})
 
 -- theme settings
+require("tokyonight").setup({
+  -- your configuration comes here
+  -- or leave it empty to use the default settings
+  style = "moon",         -- The theme comes in three styles, `storm`, `moon`, a darker variant `night` and `day`
+  light_style = "day",    -- The theme is used when the background is set to light
+  transparent = true,     -- Enable this to disable setting the background color
+  terminal_colors = true, -- Configure the colors used when opening a `:terminal` in [Neovim](https://github.com/neovim/neovim)
+  styles = {
+    -- Style to be applied to different syntax groups
+    -- Value is any valid attr-list value for `:help nvim_set_hl`
+    comments = { italic = true },
+    keywords = { italic = true },
+    functions = {},
+    variables = {},
+    -- Background styles. Can be "dark", "transparent" or "normal"
+    sidebars = "dark",              -- style for sidebars, see below
+    floats = "dark",                -- style for floating windows
+  },
+  sidebars = { "qf", "help" },      -- Set a darker background on sidebar-like windows. For example: `["qf", "vista_kind", "terminal", "packer"]`
+  day_brightness = 0.3,             -- Adjusts the brightness of the colors of the **Day** style. Number between 0 and 1, from dull to vibrant colors
+  hide_inactive_statusline = false, -- Enabling this option, will hide inactive statuslines and replace them with a thin border instead. Should work with the standard **StatusLine** and **LuaLine**.
+  dim_inactive = false,             -- dims inactive windows
+  lualine_bold = false,             -- When `true`, section headers in the lualine theme will be bold
+
+  --- You can override specific color groups to use other groups or a hex color
+  --- function will be called with a ColorScheme table
+  ---@param colors ColorScheme
+  on_colors = function(colors) end,
+
+  --- You can override specific highlights to use other groups or a hex color
+  --- function will be called with a Highlights and ColorScheme table
+  ---@param highlights Highlights
+  ---@param colors ColorScheme
+})
+
 require("catppuccin").setup({
-  flavour = "macchiato", -- latte, frappe, macchiato, mocha
+  flavour = "frappe", -- latte, frappe, macchiato, mocha
   transparent_background = true,
   styles = {
     functions = { "italic" }
@@ -196,7 +240,13 @@ require('treesitter-context').setup({
   on_attach = nil, -- (fun(buf: integer): boolean) return false to disable attaching
 })
 
-vim.cmd.colorscheme 'catppuccin'
+require('nvim-treesitter.configs').setup {
+  -- one of "all", "maintained" (parsers with maintainers),
+  -- or a list of languages
+  ensure_installed = { "javascript", "ruby" },
+}
+
+vim.cmd.colorscheme 'tokyonight'
 
 -- [[ Setting options ]]
 -- See `:help vim.o`
@@ -261,8 +311,10 @@ vim.keymap.set('n', '<C-J>', 'o<Esc>')
 -- Add breaking newline without going into insert, mainly for formatting code
 vim.keymap.set('n', '<C-Enter>', 'i<Enter><Esc>')
 
-vim.keymap.set('v', '<C-9>', "c'('')'<Esc>P")
+-- Relace word and paste
+vim.keymap.set('n', '<A-P>', 'viwp')
 
+vim.keymap.set('v', '<C-9>', "c'('')'<Esc>P")
 vim.keymap.set('x', '<leader>p', "\"_dP")
 
 -- [[ Highlight on yank ]]
@@ -310,14 +362,6 @@ vim.keymap.set('n', '<leader>sw', require('telescope.builtin').grep_string, { de
 vim.keymap.set('n', '<leader>sg', require('telescope.builtin').live_grep, { desc = '[S]earch by [G]rep' })
 vim.keymap.set('n', '<leader>sd', require('telescope.builtin').diagnostics, { desc = '[S]earch [D]iagnostics' })
 
--- Harpoon Keymaps
-vim.keymap.set('n', '<leader>hm', "<cmd>lua require('harpoon.mark').add_file()<cr>", { desc = '[H]arpoon [M]ark' })
-vim.keymap.set('n', '<leader>hr', "<cmd>lua require('harpoon.mark').rm_file()<cr>", { desc = '[H]arpoon [R]emove Mark' })
-vim.keymap.set('n', '<leader>hq', "<cmd>lua require('harpoon.ui').toggle_quick_menu()<cr>",
-  { desc = '[H]arpoon [Q]uick Menu' })
-vim.keymap.set('n', '<leader>hn', "<cmd>lua require('harpoon.ui').nav_next()<cr>", { desc = '[H]arpoon [N]ext' })
-vim.keymap.set('n', '<leader>hp', "<cmd> require('harpoon.ui').nav_prev()<cr>", { desc = '[H]arpoon [P]revious' })
-
 
 -- [[ Configure Treesitter ]]
 -- See `:help nvim-treesitter`
@@ -351,6 +395,8 @@ require('nvim-treesitter.configs').setup {
         ['if'] = '@function.inner',
         ['ac'] = '@class.outer',
         ['ic'] = '@class.inner',
+        ['ai'] = '@conditional.outer',
+        ['ii'] = '@conditional.inner',
       },
     },
     move = {
@@ -481,6 +527,16 @@ mason_lspconfig.setup_handlers {
   end,
 }
 
+require('lspconfig').eslint.setup({
+  on_attach = function(client, bufnr)
+    vim.api.nvim_create_autocmd("BufWritePre", {
+      buffer = bufnr,
+      command = "EslintFixAll",
+    })
+  end,
+})
+
+
 -- [[ Configure nvim-cmp ]]
 -- See `:help cmp`
 local cmp = require 'cmp'
@@ -528,6 +584,7 @@ cmp.setup {
     { name = 'luasnip' },
   },
 }
+
 
 
 
